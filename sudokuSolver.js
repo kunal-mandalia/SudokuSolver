@@ -899,9 +899,9 @@
 		let d = [1,2,3,4,5,6,7,8,9];
 		let countRemoved = 0;
 
-		d.forEach(n => {
-			b.forEach(gr => {
-				b.forEach(gc => {
+		for (let n=1;n<10;n++) {
+			for (let gr=1; gr<4; gr++) {
+				for (let gc=1; gc<4; gc++) {
 					//subgrid possibilties
 					// p is the place holder for the first possibility {r,c,n}
 					let gP = findSubgridPossibilities(gr, gc, n, G);
@@ -957,9 +957,9 @@
 							}
 						}
 					}
-				});
-			});
-		})
+				}
+			}
+		}
 		return {G:G, error: false, countRemoved: countRemoved};
 	}
 	S.cycle = cycle;
@@ -994,7 +994,7 @@
 			cycleCount += 1;
 			C = cycle(G);
 
-			// core algorithms broke..halt the cycle
+			// core algorithms broke..halt the cycle...broke due to bad guess
 			if (C.error) { 
 				console.warn('problem running core algorithms: C.error', C);
 				stop = true;
@@ -1026,7 +1026,7 @@
 					C.countRemoved += removeKnown.countRemoved;
 
 				}
-			} 
+			}
 			// no progress was made this cycle (no possibilities were removed)
 			// e.g. we might have solved the problem or the cycle algorithms aren't enough for the evil problems
 			// 	so make the best guess we can, and if it fails, rollback to the preGuessCycle and make another guess
@@ -1037,9 +1037,11 @@
 					solved = true;
 					stop = true;
 				}  else {
-					// no progress made in this cycle. Fiendish problems may not be solvable using
-					// algorithms within cycle alone
-					// make a guess, if it fails, rewind to last successful cycle
+					// stop = true;
+
+					// // no progress made in this cycle. Fiendish problems may not be solvable using
+					// // algorithms within cycle alone
+					// // make a guess, if it fails, rewind to last successful cycle
 					if (nextGuess.length === 0) { 
 						nextGuess = getBinarySolutionPosition(C.G);
 					}
@@ -1063,7 +1065,6 @@
 					C.G[s.r][s.c] = [s.n];
 					guessed.push(nextGuess[nextGuess.length-1]);
 					nextGuess.pop();
-
 				}
 			}
 		}
