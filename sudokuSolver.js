@@ -592,10 +592,11 @@
 		let d = [1,2,3,4,5,6,7,8,9];
 		d.forEach(r => {
 			d.forEach(c => {
-				let id = r.toString() + c.toString();
+				let id = r.toString() + c.toString();				
+				let cellId = 'cell' + r.toString() + c.toString();
 				
-				let value = (grid[r][c].length === 1) ? "<div class='solved'>" + grid[r][c] + '</div>'
-					: "<div class='unsolved'>" + grid[r][c] + '</div>';
+				let value = (grid[r][c].length === 1) ? "<div class='solved' id='" + cellId + "'>" + grid[r][c] + "</div>"
+					: "<div class='unsolved' id='" + cellId + "'>"+ grid[r][c] + '</div>';
 				document.getElementById(id).innerHTML = value;
 			})
 		})
@@ -615,6 +616,27 @@
 		});
 		document.getElementById('grid').innerHTML = table;
 	}
+
+	function renderEditMode() {
+		let d = [1,2,3,4,5,6,7,8,9];
+		d.forEach( r => {
+			d.forEach( c => {
+				let id = r.toString() + c.toString();
+				let cellId = 'cell' + id;
+				let cell = document.getElementById(cellId);
+				// remove cell
+				let parent = document.getElementById(id);
+				parent.removeChild(cell);
+				// add input field
+				let input = document.createElement("input");
+				input.id = 'input' + id;
+				input.type = "number";
+				input.className = "inputNumber"; // set the CSS class
+				parent.appendChild(input); // put it into the DOM
+			})
+		})		
+	}
+	S.renderEditMode = renderEditMode;
 
 	function initialiseGrid() {
 		let G = getTestGrid();
