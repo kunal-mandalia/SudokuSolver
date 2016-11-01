@@ -10,11 +10,12 @@
 (function(window){
 
 	const S = {}; // global Sudoku Solver object, exposed to window
-	let Grid = {}; // global grid object, private (not exposed to window)
+	// let Grid = {}; // global grid object, private (not exposed to window)
 	S.stop = false;
-	S.progressByCycle = []; // progressByCycle[k]=m => m possibilities removed on cycle k
+	// S.progressByCycle = []; // progressByCycle[k]=m => m possibilities removed on cycle k
 	S.toBeRemoved = []; // [{r, c, n}, ...]
 	S.hasBeenRemoved = []; // [{r, c, n}, ...]
+	S.editMode = false;
 	/**
 	 * Core algorithms
 	 */
@@ -592,9 +593,9 @@
 		let d = [1,2,3,4,5,6,7,8,9];
 		d.forEach(r => {
 			d.forEach(c => {
-				let id = r.toString() + c.toString();				
+				let id = r.toString() + c.toString();
 				let cellId = 'cell' + r.toString() + c.toString();
-				
+				// todo: add css class for starting values
 				let value = (grid[r][c].length === 1) ? "<div class='solved' id='" + cellId + "'>" + grid[r][c] + "</div>"
 					: "<div class='unsolved' id='" + cellId + "'>"+ grid[r][c] + '</div>';
 				document.getElementById(id).innerHTML = value;
@@ -610,14 +611,23 @@
 			table+='<tr>';
 			d.forEach(c => {
 				let id = r.toString() + c.toString();
-				table+="<td class='td' id='" + id + "'>" + '(' + r + ', ' + c + ')' + '</td>';
+				table+="<td class='td' id='" + id + "'></td>";
 			})
 			table+='</tr>';		
 		});
 		document.getElementById('grid').innerHTML = table;
 	}
 
+	/**
+	 * make the grid the user sees editable with textboxes in each cell
+	 */
 	function renderEditMode() {
+		// render solve action
+		let aDiv = document.getElementById('action');
+		// overwrite innerHTML
+		let action = "<span><div class='solveComment'>Enter the problem</div><div class='generateAction' onclick='S.generateProblem()'>(or generate one)</div><div class='solveAction' onclick='S.solveInputProblem()'>Solve it</div></span>";
+		aDiv.innerHTML = action;
+		// render editable grid
 		let d = [1,2,3,4,5,6,7,8,9];
 		d.forEach( r => {
 			d.forEach( c => {
@@ -626,7 +636,11 @@
 				let cell = document.getElementById(cellId);
 				// remove cell
 				let parent = document.getElementById(id);
-				parent.removeChild(cell);
+				try {
+					parent.removeChild(cell);					
+				} catch (error) {
+					// 
+				}
 				// add input field
 				let input = document.createElement("input");
 				input.id = 'input' + id;
@@ -634,14 +648,91 @@
 				input.className = "inputNumber"; // set the CSS class
 				parent.appendChild(input); // put it into the DOM
 			})
-		})		
+		})
+		S.editMode = true;
 	}
 	S.renderEditMode = renderEditMode;
 
-	function initialiseGrid() {
-		let G = getTestGrid();
-		Grid = G;
+	function test_renderEditMode() {
+		renderEditMode();
+		let t1 = document.getElementById('input11');
+		console.assert(t1, "failed test_renderEditMode. Could not find elem with id='input11'", t1);
 	}
+
+
+	/**
+	 * @returns {Object} {G: Object, validation: Object, starting: Array} : 
+	 * 	G grid, error is due to bad input e.g. n>9, starting is the set of starting numbers given encoded 'cellij'
+	 */
+	function inputToGrid() {
+		let grid = {};		
+		let validation = {error: false, inputId: ''}; // errorCell e.g. "input15"
+		let starting = [];
+
+		let d = [1,2,3,4,5,6,7,8,9];
+		// valid input: no values, v==="", or a number from 1-9		
+		function isValid(id) {
+			let reg = new RegExp('^[1-9]$');
+			let v = document.getElementById(id).value;
+			// user entered value between 1-9
+			if (reg.test(v)) {
+				return {value: v, valid: true};
+			}
+			// no input
+			else if (v.length===0) {
+				return {value: false, valid: true}
+			}
+			// invalid input
+			else {
+				return {value: false, valid: false}
+			}
+		}
+
+		for (let r=1; r<10; r++) {
+			grid[r] = {};
+			for (let c=1; c<10; c++) {
+				let id = 'input' + r.toString() + c.toString();
+				let check = isValid(id);
+				// input error
+				if (!check.valid) {
+					validation = {error: true, inputId: 'input' + r.toString() + c.toString()};
+					return {G: grid, validation: validation}; 
+				} // user provided valid cell number
+				else if (check.valid && check.value) {
+					grid[r][c] = [Number(check.value)];
+					starting.push('cell' + r.toString() + c.toString()); // toString to simplify checking which cells are solved
+				} else { // no input - take all possibilities to begin with
+					grid[r][c] = d;
+				}
+			}
+		}
+		// console.log('grid', grid);
+		return {G: grid, validation: validation, starting: starting};
+	}
+	S.inputToGrid = inputToGrid;
+
+	function renderGrid2(G, validation, starting) {
+		// input error, render it with the css error class
+		if (validation.error) {
+			document.getElementById(validation.inputId).className += " error";
+		} else {
+			// no errors
+			let d = [1,2,3,4,5,6,7,8,9];
+			d.forEach(r => {
+				d.forEach(c => {
+					let id = r.toString() + c.toString();
+					let cellId = 'cell' + r.toString() + c.toString();
+					// todo: add css class for starting values
+					let startingCss = (starting.indexOf(cellId) !== -1) ? 'starting' : '';
+					let value = (G[r][c].length === 1) ? "<div class='solved " + startingCss + "' id='" + cellId + "'>" + G[r][c] + "</div>"
+						: "<div class='unsolved' id='" + cellId + "'>"+ G[r][c] + '</div>';
+					document.getElementById(id).innerHTML = value;
+				});
+			});
+		}
+	}
+	S.renderGrid2 = renderGrid2;
+
 
 	/**
 	 * checks whether a possibility p has been removed
@@ -703,7 +794,6 @@
 				}
 			}
 		}
-
 		return false;
 	}
 
@@ -946,7 +1036,6 @@
 					console.log('hurrah - the problem has been solved!');
 					solved = true;
 					stop = true;
-					renderGrid(C.G);
 				}  else {
 					// no progress made in this cycle. Fiendish problems may not be solvable using
 					// algorithms within cycle alone
@@ -977,12 +1066,55 @@
 
 				}
 			}
-			renderGrid(C.G);
 		}
 		return { cycle: C, cycleCount: cycleCount, stop: stop, solved: solved};
 	}
 	S.solveProblem = solveProblem;
 
+	function solveInputProblem() {
+		let GV = inputToGrid();
+		renderGrid2(GV.G, GV.validation, GV.starting);
+		
+		if (GV.validation.error) { return false };
+		let S = solveProblem(GV.G);
+		renderGrid2(S.cycle.G, GV.validation, GV.starting);
+
+		let action = S.solved ?  "<span><div class='solveComment'>hurrah! Another one bites the dust</div><div class='solveAction' onclick='S.renderEditMode()'>Try another</div></span>"
+			: "<span><div class='solveComment'>hmm...that stumped me, you sure you entered the grid okay to begin with? </div><div class='solveAction' onclick='S.renderEditMode()'>Try again</div></span>";
+		let aDiv = document.getElementById('action');
+		aDiv.innerHTML = action;
+	}
+	S.solveInputProblem = solveInputProblem;
+
+	function generateTestInput(gridType) {
+		if (!S.editMode) { renderEditMode(); }
+		let grid = getTestGrid(gridType);
+		let d = [1,2,3,4,5,6,7,8,9];
+		d.forEach( r => {
+			d.forEach( c => {
+				let inputId = 'input' + r.toString() + c.toString();				
+				if (grid[r][c].length === 1) {
+					document.getElementById(inputId).value = grid[r][c][0];
+				} else {
+					document.getElementById(inputId).value = '';					
+				}
+			});
+		});
+	}
+	S.generateTestInput = generateTestInput;
+
+	function generateProblem() {
+		let options = ['evil1', 'hard', 'easy'];
+		// Returns a random integer between min (included) and max (included)
+		function getRandomInt(min, max) {
+			return Math.floor(Math.random() * (max - min + 1)) + min;
+		}
+
+		let i = getRandomInt(0, options.length);
+		let option = options[i];
+		generateTestInput(option);
+	}
+	S.generateProblem = generateProblem;
 	/**
 	 * run all tests
 	 * 
@@ -1000,13 +1132,21 @@
 		test_flushToBeRemoved();
 		test_getBinarySolutionPosition(logOutput);
 		test_countRemainingSolutions();
+		test_renderEditMode();
 	}
 	S.runAllTests = runAllTests;
 
 	// document is ready, render grid
 	renderGridTemplate();
-	initialiseGrid();
-	renderGrid();
+	renderEditMode();
+	// initialiseGrid();
+	// renderGrid();
 
 	window.S = S; // open access to S, the Sudoku Solver library, from window
 })(window);
+
+/**
+ * failing sudoku puzzles
+ * http://www.websudoku.com/?level=4&set_id=1170319394 evil
+ * http://www.websudoku.com/?level=3&set_id=8197842183 hard
+ */

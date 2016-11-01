@@ -6,6 +6,7 @@ h1 {
 	text-align: center;
 	padding-top: 20px;
 	color: rgba(180, 175, 206, 0.73);
+	font-weight: 100;
 }
 
 table {
@@ -73,12 +74,13 @@ tr:nth-child(9) {
 
 .solved {
 	font-size: x-large;
-	color: rgba(255, 255, 255, 0.36);
+	color: rgba(255, 255, 255, 0.86);
+	font-family: sans-serif;	
 }
 
 .unsolved {
-	font-size: small;
-	color: #575175;
+	font-size: x-small;
+	color: rgba(235, 235, 235, 0.02);
 	text-align: left;
 }
 
@@ -86,10 +88,42 @@ tr:nth-child(9) {
 	width: 50px;
 }
 
+.starting {
+	color: #ffeb3b;
+}
+
+.error {
+	color: red !important;
+}
+
 .inputNumber {
 	font-size: x-large;
 	color: white;
 	background-color: rgba(87, 81, 117, 0.08);
 	width: 50px;
+	border: none;
+	text-align: right;
+}
+
+#action {
 	text-align: center;
+}
+
+.solveComment {
+	color: rgba(255, 255, 255, 0.37);
+	display: inline;
+}
+
+.solveAction {
+	color: #d0d0d0;
+	display: inline;
+	background-color: #696580;
+	padding: 5px;
+	margin-left: 5px;
+}
+
+.generateAction {
+	color: rgba(255, 255, 255, 0.37);
+	display: inline;
+	margin-left: 5px;
 }
