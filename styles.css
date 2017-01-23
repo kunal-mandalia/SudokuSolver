@@ -120,6 +120,12 @@ tr:nth-child(9) {
 	background-color: #696580;
 	padding: 5px;
 	margin-left: 5px;
+	transition: 0.2s;
+}
+
+.sButton:hover {
+	background-color: purple;
+	cursor: pointer;
 }
 
 .generateAction {
