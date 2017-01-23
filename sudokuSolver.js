@@ -625,7 +625,7 @@
 		// render solve action
 		let aDiv = document.getElementById('action');
 		// overwrite innerHTML
-		let action = "<span><div class='solveComment'>Enter the problem</div><div class='generateAction' onclick='S.generateProblem()'>(or generate one)</div><div class='solveAction' onclick='S.solveInputProblem()'>Solve it</div></span>";
+		let action = "<span><div class='solveComment'>Enter the problem</div><div class='sButton' onclick='S.generateProblem()'>Generate sample</div><div class='sButton' onclick='S.solveInputProblem()'>Solve it</div></span>";
 		aDiv.innerHTML = action;
 		// render editable grid
 		let d = [1,2,3,4,5,6,7,8,9];
@@ -1080,8 +1080,8 @@
 		let S = solveProblem(GV.G);
 		renderGrid2(S.cycle.G, GV.validation, GV.starting);
 
-		let action = S.solved ?  "<span><div class='solveComment'>hurrah! Another one bites the dust</div><div class='solveAction' onclick='S.renderEditMode()'>Try another</div></span>"
-			: "<span><div class='solveComment'>hmm...that stumped me, you sure you entered the grid okay to begin with? </div><div class='solveAction' onclick='S.renderEditMode()'>Try again</div></span>";
+		let action = S.solved ?  "<span><div class='solveComment'>hurrah! Another one bites the dust</div><div class='sButton' onclick='S.renderEditMode()'>Try another</div></span>"
+			: "<span><div class='solveComment'>hmm...that stumped me, you sure you entered the grid okay to begin with? </div><div class='sButton' onclick='S.renderEditMode()'>Try again</div></span>";
 		let aDiv = document.getElementById('action');
 		aDiv.innerHTML = action;
 	}
